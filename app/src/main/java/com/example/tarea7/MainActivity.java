@@ -1,7 +1,7 @@
 package com.example.tarea7;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
@@ -18,6 +18,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerViewTareas;
     private Adapter tareaAdapter;
     private List<Tarea> tareas;
+    private Tarea tareaParaEditar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,18 +26,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         recyclerViewTareas = findViewById(R.id.recyclerViewTareas);
-        tareas = new ArrayList<>();
+        tareas = new ArrayList<>();  // Lista vacía al inicio
 
-        // Cargar datos iniciales
-        cargarDatos();
 
         // Configuración del RecyclerView y el adaptador
-        tareaAdapter = new Adapter(tareas, this);
+        tareaAdapter = new Adapter(tareas);
         recyclerViewTareas.setAdapter(tareaAdapter);
         recyclerViewTareas.setLayoutManager(new LinearLayoutManager(this));
 
-        // Configurar clic largo para mostrar el BottomSheetDialog
-        tareaAdapter.setOnItemLongClickListener((tarea, position) -> mostrarBottomSheet(tarea, position));
+        // Configurar clic para mostrar el BottomSheetDialog
+        tareaAdapter.setOnItemClickListener((tarea, position) -> mostrarBottomSheet(tarea, position));
 
         // Botón flotante para agregar una nueva tarea
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -44,11 +43,6 @@ public class MainActivity extends AppCompatActivity {
             AgregarTrabajo agregarTrabajoDialog = new AgregarTrabajo();
             agregarTrabajoDialog.show(getSupportFragmentManager(), "AgregarTrabajo");
         });
-    }
-
-    // Método para manejar el clic en una tarea
-    public void onTareaClick(Tarea tarea, int position) {
-        Toast.makeText(this, "Tarea clickeada: " + tarea.getDescripcion(), Toast.LENGTH_SHORT).show();
     }
 
     // Método para mostrar el BottomSheetDialog
@@ -64,48 +58,70 @@ public class MainActivity extends AppCompatActivity {
 
         editarOpcion.setOnClickListener(v -> {
             bottomSheetDialog.dismiss();
-            // Lógica para editar la tarea
-            Toast.makeText(this, "Editar tarea: " + tarea.getDescripcion(), Toast.LENGTH_SHORT).show();
+            tareaParaEditar = tarea; // Guardar la tarea para editar
+
+            // Pasar la tarea a editar al Fragmento de AgregarTrabajo
+            AgregarTrabajo agregarTrabajoDialog = new AgregarTrabajo();
+            Bundle args = new Bundle();
+            args.putString("descripcion", tarea.getDescripcion());
+            args.putString("fecha", tarea.getFecha());
+            agregarTrabajoDialog.setArguments(args);
+            agregarTrabajoDialog.show(getSupportFragmentManager(), "EditarTrabajo");
         });
+
 
         eliminarOpcion.setOnClickListener(v -> {
             bottomSheetDialog.dismiss();
-            tareas.remove(position);
-            tareaAdapter.notifyItemRemoved(position);
-            Toast.makeText(this, "Tarea eliminada.", Toast.LENGTH_SHORT).show();
+
+            // Crear el AlertDialog de confirmación
+            new AlertDialog.Builder(this)
+                    .setMessage("¿Seguro que quieres eliminar esta tarea?")
+                    .setPositiveButton("Eliminar", (dialog, which) -> {
+                        // Eliminar la tarea y actualizar la lista
+                        tareas.remove(position);
+                        tareaAdapter.notifyItemRemoved(position);
+                        Toast.makeText(this, "Tarea eliminada.", Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("Cancelar", (dialog, which) -> {
+                        // No hacer nada si el usuario cancela
+                        dialog.dismiss();
+                    })
+                    .show(); // Mostrar el AlertDialog
         });
+
 
         completarOpcion.setOnClickListener(v -> {
             bottomSheetDialog.dismiss();
-            // Lógica para marcar como completada
+            tarea.setEstado("Completada"); // Cambiar el estado de la tarea
+            tareaAdapter.actualizarTarea(position, tarea); // Actualizar la tarea en el adaptador
             Toast.makeText(this, "Tarea completada: " + tarea.getDescripcion(), Toast.LENGTH_SHORT).show();
         });
 
         bottomSheetDialog.show();
     }
 
-    // Método para cargar datos iniciales
-    private void cargarDatos() {
-        tareas.add(new Tarea("PMDM", "Descripción de la tarea 1", "2025-01-15"));
-        tareas.add(new Tarea("AD", "Descripción de la tarea 2", "2025-01-16"));
-    }
-
-    // Método para agregar una tarea
+    // Método para agregar o editar una tarea
     public void agregarTarea(String asignatura, String descripcion, String fecha) {
         if (asignatura.isEmpty() || descripcion.isEmpty() || fecha.isEmpty()) {
             Toast.makeText(this, "Por favor, completa todos los campos.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Tarea nuevaTarea = new Tarea(asignatura, descripcion, fecha);
-        tareas.add(nuevaTarea);
-
-        if (tareaAdapter != null) {
-            tareaAdapter.notifyDataSetChanged();
+        if (tareaParaEditar != null) {
+            tareaParaEditar.setAsignatura(asignatura);
+            tareaParaEditar.setDescripcion(descripcion);
+            tareaParaEditar.setFecha(fecha);
+            tareaAdapter.notifyDataSetChanged(); // Notificar que se ha editado la tarea
+            tareaParaEditar = null; // Limpiar la tarea para editar
+            Toast.makeText(this, "Tarea editada: " + descripcion, Toast.LENGTH_SHORT).show();
         } else {
-            Log.e("MainActivity", "El adaptador no está inicializado.");
+            Tarea nuevaTarea = new Tarea(asignatura, descripcion, fecha);
+            tareas.add(nuevaTarea);
+            tareaAdapter.notifyDataSetChanged();
+            Toast.makeText(this, "Tarea añadida: " + descripcion, Toast.LENGTH_SHORT).show();
         }
-
-        Toast.makeText(this, "Tarea añadida: " + descripcion, Toast.LENGTH_SHORT).show();
     }
 }
+
+
+

@@ -1,43 +1,56 @@
 package com.example.tarea7;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
-public class Adapter extends RecyclerView.Adapter<Adapter.TareaViewHolder> {
-    private List<Tarea> tareas;
-    private Context context;
+public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
 
-    public Adapter(List<Tarea> tareas, Context context) {
+    private List<Tarea> tareas;
+    private OnItemClickListener onItemClickListener;
+
+    // Constructor
+    public Adapter(List<Tarea> tareas) {
         this.tareas = tareas;
-        this.context = context;
+    }
+
+    // Interfaz para manejar clics simples
+    public interface OnItemClickListener {
+        void onItemClick(Tarea tarea, int position);
+    }
+
+    // Método para establecer el listener de clic
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.onItemClickListener = listener;
     }
 
     @NonNull
     @Override
-    public TareaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.tarea, parent, false);
-        return new TareaViewHolder(view);
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // Inflar la vista del item con el estado añadido
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.tarea, parent, false);
+        return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull TareaViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Tarea tarea = tareas.get(position);
-        holder.asignatura.setText(tarea.getAsignatura());
-        holder.descripcion.setText(tarea.getDescripcion());
-        holder.fecha.setText(tarea.getFecha());
 
-        // Establecer el clic directamente en el ViewHolder
+        // Configurar las vistas con los datos de la tarea
+        holder.textViewAsignatura.setText(tarea.getAsignatura());
+        holder.textViewDescripcion.setText(tarea.getDescripcion());
+        holder.textViewFecha.setText(tarea.getFecha());
+        holder.textViewEstado.setText(tarea.getEstado());  // Mostrar el estado
+
+        // Configurar el listener para clics simples
         holder.itemView.setOnClickListener(v -> {
-            if (context instanceof MainActivity) {
-                // Si el contexto es MainActivity, manejar el clic
-                ((MainActivity) context).onTareaClick(tarea, position);
+            if (onItemClickListener != null) {
+                onItemClickListener.onItemClick(tarea, position);
             }
         });
     }
@@ -47,18 +60,28 @@ public class Adapter extends RecyclerView.Adapter<Adapter.TareaViewHolder> {
         return tareas.size();
     }
 
-    public void setOnItemLongClickListener(Object o) {
+    // Método para actualizar el estado de una tarea
+    public void actualizarTarea(int position, Tarea tarea) {
+        tareas.set(position, tarea);
+        notifyItemChanged(position);
     }
 
-    public static class TareaViewHolder extends RecyclerView.ViewHolder {
-        TextView asignatura, descripcion, fecha;
+    // Clase ViewHolder para mantener las referencias de las vistas
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView textViewAsignatura;
+        TextView textViewDescripcion;
+        TextView textViewFecha;
+        TextView textViewEstado;  // Añadir TextView para el estado
 
-        public TareaViewHolder(View itemView) {
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            asignatura = itemView.findViewById(R.id.asignatura);
-            descripcion = itemView.findViewById(R.id.descripcion);
-            fecha = itemView.findViewById(R.id.fecha);
+            textViewAsignatura = itemView.findViewById(R.id.asignatura);
+            textViewDescripcion = itemView.findViewById(R.id.descripcion);
+            textViewFecha = itemView.findViewById(R.id.fecha);
+            textViewEstado = itemView.findViewById(R.id.estado);  // Referencia al TextView de estado
         }
     }
 }
+
+
 

@@ -9,25 +9,31 @@
         android:id="@+id/opcionEditar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp"
         android:text="Editar"
-        android:textSize="16sp" />
+        android:padding="12dp"
+        android:textSize="16sp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true" />
 
     <TextView
         android:id="@+id/opcionEliminar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp"
         android:text="Eliminar"
-        android:textSize="16sp" />
+        android:padding="12dp"
+        android:textSize="16sp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true" />
 
     <TextView
         android:id="@+id/opcionCompletar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:text="Marcar como completada"
-        android:textSize="16sp" />
+        android:text="Completar"
+        android:padding="12dp"
+        android:textSize="16sp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true" />
 </LinearLayout>
 
 

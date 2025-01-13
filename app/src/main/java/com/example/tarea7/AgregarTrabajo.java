@@ -35,6 +35,17 @@ public class AgregarTrabajo extends DialogFragment {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         asignaturaSpinner.setAdapter(adapter);
 
+        // Si estamos editando una tarea, rellenamos los campos
+        if (getArguments() != null) {
+            String asignatura = getArguments().getString("asignatura");
+            String descripcion = getArguments().getString("descripcion");
+            String fecha = getArguments().getString("fecha");
+
+            asignaturaSpinner.setSelection(adapter.getPosition(asignatura));
+            descripcionEditText.setText(descripcion);
+            fechaEditText.setText(fecha);
+        }
+
         // Configuración del DatePickerDialog
         Calendar calendar = Calendar.getInstance();
         year = calendar.get(Calendar.YEAR);
