@@ -6,13 +6,20 @@ public class Tarea {
     private String fecha;
     private String estado;
 
-    public Tarea(String asignatura, String descripcion, String fecha) {
+    // Constructor con 4 parámetros
+    public Tarea(String asignatura, String descripcion, String fecha, String estado) {
         this.asignatura = asignatura;
         this.descripcion = descripcion;
         this.fecha = fecha;
-        this.estado = "Pendiente";
+        this.estado = estado;
     }
 
+    // Constructor con 3 parámetros (por defecto estado como "Pendiente")
+    public Tarea(String asignatura, String descripcion, String fecha) {
+        this(asignatura, descripcion, fecha, "Pendiente");
+    }
+
+    // Getters y Setters
     public String getAsignatura() {
         return asignatura;
     }

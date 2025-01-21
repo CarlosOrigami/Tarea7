@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "572015968921",
+    "project_id": "ejemplo-fbff6",
+    "storage_bucket": "ejemplo-fbff6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:572015968921:android:92a76351264d1b13a66e08",
+        "android_client_info": {
+          "package_name": "com.example.tarea7"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCF6P-QPnHTiYTODjbaI58NIN0ttQQFqyI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

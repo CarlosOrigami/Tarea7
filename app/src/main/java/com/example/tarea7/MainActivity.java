@@ -1,6 +1,9 @@
 package com.example.tarea7;
 
 import android.app.AlertDialog;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,11 +31,13 @@ public class MainActivity extends AppCompatActivity {
         recyclerViewTareas = findViewById(R.id.recyclerViewTareas);
         tareas = new ArrayList<>();  // Lista vacía al inicio
 
-
         // Configuración del RecyclerView y el adaptador
         tareaAdapter = new Adapter(tareas);
         recyclerViewTareas.setAdapter(tareaAdapter);
         recyclerViewTareas.setLayoutManager(new LinearLayoutManager(this));
+
+        // Cargar tareas desde la base de datos
+        cargarTareasDeDb();
 
         // Configurar clic para mostrar el BottomSheetDialog
         tareaAdapter.setOnItemClickListener((tarea, position) -> mostrarBottomSheet(tarea, position));
@@ -69,7 +74,6 @@ public class MainActivity extends AppCompatActivity {
             agregarTrabajoDialog.show(getSupportFragmentManager(), "EditarTrabajo");
         });
 
-
         eliminarOpcion.setOnClickListener(v -> {
             bottomSheetDialog.dismiss();
 
@@ -77,18 +81,15 @@ public class MainActivity extends AppCompatActivity {
             new AlertDialog.Builder(this)
                     .setMessage("¿Seguro que quieres eliminar esta tarea?")
                     .setPositiveButton("Eliminar", (dialog, which) -> {
-                        // Eliminar la tarea y actualizar la lista
+                        // Eliminar la tarea de la lista y la base de datos
+                        eliminarTareaDeDb(tarea.getDescripcion());
                         tareas.remove(position);
                         tareaAdapter.notifyItemRemoved(position);
                         Toast.makeText(this, "Tarea eliminada.", Toast.LENGTH_SHORT).show();
                     })
-                    .setNegativeButton("Cancelar", (dialog, which) -> {
-                        // No hacer nada si el usuario cancela
-                        dialog.dismiss();
-                    })
-                    .show(); // Mostrar el AlertDialog
+                    .setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss())
+                    .show();
         });
-
 
         completarOpcion.setOnClickListener(v -> {
             bottomSheetDialog.dismiss();
@@ -117,11 +118,62 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Tarea nuevaTarea = new Tarea(asignatura, descripcion, fecha);
             tareas.add(nuevaTarea);
+            guardarTareaEnDb(asignatura, descripcion, fecha, "Pendiente"); // Guardar en SQLite
             tareaAdapter.notifyDataSetChanged();
             Toast.makeText(this, "Tarea añadida: " + descripcion, Toast.LENGTH_SHORT).show();
         }
     }
-}
 
+    // Método para guardar una tarea en la base de datos
+    private void guardarTareaEnDb(String asignatura, String descripcion, String fecha, String estado) {
+        SQLiteDatabase db = new TareaDB(this).getWritableDatabase();
+
+        ContentValues valores = new ContentValues();
+        valores.put("asignatura", asignatura);
+        valores.put("descripcion", descripcion);
+        valores.put("fecha", fecha);
+        valores.put("estado", estado);
+
+        db.insert("tareas", null, valores); // Nombre de la tabla directamente
+        db.close();
+    }
+
+    // Método para cargar tareas desde la base de datos
+    private void cargarTareasDeDb() {
+        SQLiteDatabase db = new TareaDB(this).getReadableDatabase();
+
+        String[] columnas = {"asignatura", "descripcion", "fecha", "estado"}; // Nombres de las columnas directamente
+
+        Cursor cursor = db.query(
+                "tareas",    // Nombre de la tabla directamente
+                columnas,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        tareas.clear();
+        while (cursor.moveToNext()) {
+            String asignatura = cursor.getString(cursor.getColumnIndexOrThrow("asignatura"));
+            String descripcion = cursor.getString(cursor.getColumnIndexOrThrow("descripcion"));
+            String fecha = cursor.getString(cursor.getColumnIndexOrThrow("fecha"));
+            String estado = cursor.getString(cursor.getColumnIndexOrThrow("estado"));
+
+            tareas.add(new Tarea(asignatura, descripcion, fecha, estado));
+        }
+        cursor.close();
+        db.close();
+        tareaAdapter.notifyDataSetChanged();
+    }
+
+    // Método para eliminar una tarea de la base de datos
+    private void eliminarTareaDeDb(String descripcion) {
+        SQLiteDatabase db = new TareaDB(this).getWritableDatabase();
+        db.delete("tareas", "descripcion=?", new String[]{descripcion}); // Tabla y columna directamente
+        db.close();
+    }
+}
 
 
